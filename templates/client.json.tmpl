@@ -1,0 +1,19 @@
+{
+  "client": {
+    "name": "{{ .Env.CLIENT_NAME }}",
+    "address": "{{ .Env.CLIENT_ADDRESS }}",
+    "subscriptions": [
+      {{range  $index, $element := split .Env.CLIENT_SUBSCRIPTIONS "," }}
+        {{if $index}},{{end}}"{{.}}"
+      {{end}}
+    ],
+    "keepalive": {
+      "thresholds": {
+        "warning": 60,
+        "critical": 300
+      },
+      "handlers": ["slack", "mailer", "pagerduty"],
+      "refresh": 1800
+    }
+  }
+}
