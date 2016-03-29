@@ -1,0 +1,46 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: sensu-client
+  namespace: kube-system
+spec:
+  template:
+    metadata:
+      labels:
+        app: sensu-client
+    spec:
+      dnsPolicy: "ClusterFirst"
+      restartPolicy: "Always"
+      containers:
+      - name: sensu-client
+        image: dronedeploy/sensu-client:v0.1.0
+        imagePullPolicy: "Always"
+        env:
+        - name: CLIENT_SUBSCRIPTIONS
+          value: all,default
+        - name: RABBITMQ_PORT
+          value: "5671"
+        - name: RABBITMQ_HOST
+          value: xx.xx.xx.xx
+        - name: RABBITMQ_USER
+          valueFrom:
+            secretKeyRef:
+              name: "sensu-credentials"
+              key: user
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "sensu-credentials"
+              key: password
+        - name: RABBITMQ_VHOST
+          value: sensu
+        - name: SENSU_SSL_KEY
+          valueFrom:
+            secretKeyRef:
+              name: "sensu-ssl"
+              key: key
+        - name: SENSU_SSL_CERT
+          valueFrom:
+            secretKeyRef:
+              name: "sensu-ssl"
+              key: cert

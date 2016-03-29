@@ -1,0 +1,13 @@
+{
+  "rabbitmq": {
+          "ssl": {
+        "private_key_file": "/etc/sensu/ssl/sensu_client_key.pem",
+        "cert_chain_file": "/etc/sensu/ssl/sensu_client_cert.pem"
+      },
+    "port": {{ default .Env.RABBITMQ_PORT }},
+    "host": "{{ default .Env.RABBITMQ_HOST "rabbitmq" }}",
+    "user": "{{ default .Env.RABBITMQ_USER "guest" }}",
+    "password": "{{ default .Env.RABBITMQ_PASSWORD "guest" }}",
+    "vhost": "{{ default .Env.RABBITMQ_VHOST "/" }}"
+  }
+}

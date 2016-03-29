@@ -1,0 +1,40 @@
+#!/bin/bash
+set -e
+
+export CLIENT_NAME=$(hostname -f)
+export CLIENT_ADDRESS=$(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}')
+
+SENSU_SERVICE=${SENSU_SERVICE-$1}
+
+DEPENDENCIES="rabbitmq client"
+DIRS="$CONFIG_DIR"
+
+shopt -s nullglob #fixes null glob when no file exists
+for file in $CONFIG_DIR/*.tmpl
+do
+  echo "Processing $file file..."
+  dockerize -template $file:${file%.*} echo
+done
+
+for index in $DEPENDENCIES
+do
+  dockerize -template /etc/sensu/templates/$index.json.tmpl:$CONFIG_DIR/$index.json echo
+done
+
+# use host (not container) dirs for checks and metrics
+sed -i "s|/dev|$HOST_DEV_DIR|g" /opt/sensu/embedded/bin/*.rb
+sed -i "s|/proc|$HOST_PROC_DIR|g" /opt/sensu/embedded/bin/*.rb
+sed -i "s|/sys|$HOST_SYS_DIR|g" /opt/sensu/embedded/bin/*.rb
+
+find /etc/sensu -regex '.*\.ya?ml' | while read yamlFile; do
+  echo "Converting yaml to json"
+  jsonFile=$(echo ${yamlFile} | sed -r -e 's/\.ya?ml/.json/');
+  yaml2json ${yamlFile} > ${jsonFile}
+done
+
+if [[ "${CERT_SECRET}" == "true" ]]; then
+  echo "${SENSU_SSL_KEY}" | base64 -d >> /etc/sensu/ssl/sensu_client_key.pem
+  echo "${SENSU_SSL_CERT}" | base64 -d >> /etc/sensu/ssl/sensu_client_cert.pem
+fi
+
+dockerize sensu-client -d $DIRS -e $EXTENSION_DIR -L $LOG_LEVEL $OPTIONS
