@@ -28,6 +28,13 @@ COPY sensu_client_cert.pem /etc/sensu/ssl/sensu_client_cert.pem
 COPY start /bin/start
 ADD templates /etc/sensu/templates
 
-RUN /opt/sensu/embedded/bin/gem install  sensu-plugins-io-checks sensu-plugins-process-checks sensu-plugins-load-checks sensu-plugins-cpu-checks sensu-plugins-disk-checks sensu-plugins-memory-checks
+RUN /opt/sensu/embedded/bin/gem install \
+    sensu-plugins-io-checks \
+    sensu-plugins-process-checks \
+    sensu-plugins-load-checks \
+    sensu-plugins-cpu-checks \
+    sensu-plugins-disk-checks \
+    sensu-plugins-memory-checks \
+    sensu-plugins-network-checks
 
 ENTRYPOINT ["/bin/start"]
