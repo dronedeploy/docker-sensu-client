@@ -18,10 +18,29 @@ RUN apt-get update && apt-get install -y wget ca-certificates && apt-get -y clea
   echo "deb     http://repositories.sensuapp.org/apt sensu main" | tee /etc/apt/sources.list.d/sensu.list
 
 RUN apt-get update && \
-    apt-get install -y sensu ruby-dev build-essential bc && \
+    apt-get install -y \
+      sensu \
+      ruby-dev \
+      build-essential \
+      bc \
+      lsb-release \
+      apt-transport-https \
+    && \
     apt-get -y clean && \
     wget https://github.com/jwilder/dockerize/releases/download/v0.0.2/dockerize-linux-amd64-v0.0.2.tar.gz && \
 		tar -C /usr/local/bin -xzvf dockerize-linux-amd64-v0.0.2.tar.gz
+
+# NOTE: the docker client is required on sensu containers when automated
+# remediation of problems such as those which require `kube-proxy` to be
+# restarted is required. The container must be run in privileged mode for this
+# to work.
+RUN wget -qO- https://download.docker.com/linux/debian/gpg | apt-key add - \
+  && echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
+    | tee /etc/apt/sources.list.d/docker.list \
+  && apt-get update \
+  && apt-get -y install \
+    docker-ce \
+  && apt-get -y clean
 
 COPY sensu_client_key.pem /etc/sensu/ssl/sensu_client_key.pem
 COPY sensu_client_cert.pem /etc/sensu/ssl/sensu_client_cert.pem
